@@ -1,4 +1,8 @@
 ---
+# Create SFTP home partition
+- name: SFTP-Server | Create sftp home partition
+  file: path={{ sftp_home_partition }} state=directory
+
 # Creates group for SFTP users.
 - name: SFTP-Server | Create sftp user group
   group: name={{ sftp_group_name }}
