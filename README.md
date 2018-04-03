@@ -60,3 +60,9 @@ The following role variables are relevant:
 ## License
 
 Licensed under the MIT License. See the LICENSE file for details.
+
+## Author Information
+
+Steamulo - www.steamulo.com
+
+Forked from [johanmeiring](https://github.com/johanmeiring)
