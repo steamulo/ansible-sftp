@@ -7,5 +7,8 @@ Match Group {{ sftp_group_name }}
     X11Forwarding no
     ForceCommand internal-sftp
     PasswordAuthentication {% if sftp_allow_passwords %}yes{% else %}no{% endif %}
+    {% if sftp_extra_sshd_config is defined %}
+    {{ sftp_extra_sshd_config }}
+    {% endif %}
 
 # End SFTP-Server block
