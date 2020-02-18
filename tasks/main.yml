@@ -29,7 +29,7 @@
             owner=root
   notify: SFTP-Server | Restart sshd
 
-# Create each SFTP user with home directory on the correct patition, and add to SFTP group.
+# Create each SFTP user with home directory on the correct partition, and add to SFTP group.
 - name: SFTP-Server | Create sftp users
   user: name={{ item.name }}
         groups={{ sftp_group_name }}
