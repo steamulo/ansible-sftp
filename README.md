@@ -47,19 +47,19 @@ The following role variables are relevant:
   become: yes
   become_user: root
   vars:
-    - sftp_users:
+    sftp_users:
       - name: peter
         password: "$1$salty$li5TXAa2G6oxHTDkqx3Dz/" # passpass
         authorized: []
       - name: sally
         password: ""
         authorized: [sally.pub]
-    - sftp_directories:
+    sftp_directories:
       - imports
       - exports
       - { name: public, mode: 755 }
       - other
-    - sftp_extra_sshd_config: |
+    sftp_extra_sshd_config: |
       # Logging
       SyslogFacility AUTH
       LogLevel INFO
