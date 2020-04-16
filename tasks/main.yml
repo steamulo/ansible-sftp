@@ -89,7 +89,7 @@
 - name: SFTP-Server | Install public keys
   authorized_key:
     user: "{{ item.0.name }}"
-    key: "{{ lookup('file', item.1) }}"
+    key: "{{ item.1 }}"
   with_subelements:
     - "{{ _sftp_users }}"
     - authorized
