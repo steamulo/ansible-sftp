@@ -46,13 +46,14 @@
 - name: SFTP-Server | Add sshd_config block
   blockinfile:
     dest: /etc/ssh/sshd_config
-    marker: '# {mark} SFTP-Server {{ sftp_group_name }} block'
+    marker: "# {mark} SFTP-Server {{ sftp_group_name }} block"
     block: |
       Match Group {{ sftp_group_name }}
           ChrootDirectory %h
           AllowTCPForwarding no
+          PermitTunnel no
           X11Forwarding no
-          ForceCommand internal-sftp {{ sftp_enable_logging | ternary('-l VERBOSE', '') }} {{ (sftp_start_directory in sftp_directories) | ternary('-d /' + sftp_start_directory, '') }}
+          ForceCommand internal-sftp {{ sftp_enable_logging | ternary('-l VERBOSE', '') }} {{ (sftp_start_directory in sftp_directories or sftp_start_directory in sftp_directories | selectattr("name", "defined") | map(attribute='name') | list) | ternary('-d /' + sftp_start_directory, '') }}
           PasswordAuthentication {{ sftp_allow_passwords | ternary('yes', 'no') }}
   notify: SFTP-Server | Restart sshd
 
@@ -77,6 +78,18 @@
   with_items: "{{ _sftp_users }}"
 
 # A working chrooted SFTP setup requires root:sftgroup ownership of a user's home directory.
+# Temporarily removing the task below until we find a solution which does not
+# set the permissions of e.g. /home
+# Original issue: https://github.com/johanmeiring/ansible-sftp/issues/46
+# New issue: https://github.com/johanmeiring/ansible-sftp/issues/49
+# - name: SFTP-Server | Root SFTP permissions
+#   file:
+#     path: "{{ sftp_home_partition }}"
+#     state: directory
+#     mode: 0750
+#     group: "{{ sftp_group_name }}"
+#     owner: root
+
 - name: SFTP-Server | Correct ownership and permission of home directories
   file:
     path: "{{ item.home }}"
@@ -155,6 +168,7 @@
   when: sftp_enable_logging
   notify: SFTP-Server | Restart rsyslog
 
+
 - name: SFTP-Server | Enable Log rotation
   copy:
     dest: "/etc/logrotate.d/sftp"
@@ -173,3 +187,10 @@
         endscript
       }
   when: sftp_enable_logging
+
+# Restart sshd to ensure all configuration has been applied. This should always be the last task.
+- name: SFTP-Server | Restart sshd
+  service:
+    name: "{{ 'ssh' if ansible_os_family == 'Debian' else 'sshd' }}"
+    state: restarted
+  ignore_errors: Yes
