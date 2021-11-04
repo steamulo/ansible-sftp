@@ -8,7 +8,7 @@ node ('docker') {
                 // We use another dir, outside the python env
                 // so that molecule doesn't lint python lib
                 sh "mkdir steamulo.sftp"
-                dir('steamulo.steamengine') {
+                dir('steamulo.sftp') {
                     checkout scm
                     sh "python -m pip install -r requirements.txt"
                     ansiColor('xterm') {
