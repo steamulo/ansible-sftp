@@ -2,11 +2,7 @@ name: Ansible Role Test
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   test:
@@ -38,6 +34,6 @@ jobs:
           docker pull ${{ matrix.os }}:latest
           docker build --rm=true --file=tests/Dockerfile.${{ matrix.os }}.ansible-${{ matrix.ansible-version }} --tag=${{ matrix.os }}-ansible-${{ matrix.ansible-version }} tests
           container_id=$(mktemp)
-          docker run --rm=true --detach -v "${{ github.workspace }}":/project ${{ matrix.os }}-ansible-${{ matrix.ansible-version }} /sbin/init > "${container_id}" # Added volume mount
-          docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /project/tests/test.yml  # Updated path
+          docker run --rm=true --detach -v "${{ github.workspace }}":/project ${{ matrix.os }}-ansible-${{ matrix.ansible-version }} /sbin/init > "${container_id}"
+          docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /project/tests/test.yml
           docker stop "$(cat ${container_id})"
