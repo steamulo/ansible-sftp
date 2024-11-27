@@ -1,5 +1,5 @@
----
 name: Molecule Test
+
 on:
   push:
     branches:
@@ -11,27 +11,49 @@ defaults:
   run:
     shell: bash
     working-directory: steamulo.sftp
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
-        distribution: [centos7, centos8, ubuntu1804, ubuntu2004]
+        python-version: [3.8, 3.10, 3.12]
+        ubuntu-version: [18.04, 22.04, 24.04]
+        scenario: [""]
+        include:
+          - scenario: lint
+            python-version: 3.12
+            ubuntu-version: 24.04
+          - scenario: one
+            python-version: 3.12
+            ubuntu-version: 24.04
+          - scenario: two
+            python-version: 3.12
+            ubuntu-version: 24.04
+          - scenario: all
+            python-version: 3.12
+            ubuntu-version: 24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           path: steamulo.sftp
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-      - name: Run all molecule scenarios
+      - name: Run molecule ${{ matrix.scenario }}
         env:
-          MOLECULE_DISTRO: ${{ matrix.distribution }}
+          MOLECULE_DISTRO: "ubuntu${{ matrix.ubuntu-version }}"
         run: |
-          molecule test --all
+          molecule ${{ matrix.scenario }}
