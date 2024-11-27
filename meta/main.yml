@@ -1,4 +1,5 @@
 ---
+
 galaxy_info:
   author: Johan Meiring
   description: "Setup chrooted SFTP service on top of OpenSSH"

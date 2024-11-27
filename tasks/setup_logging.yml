@@ -1,0 +1,33 @@
+---
+
+- name: SFTP-Server | Enable Logging
+  copy:
+    dest: "/etc/rsyslog.d/sftp.conf"
+    content: |
+      {% for user in sftp_users %}
+      $AddUnixListenSocket {{ sftp_home_partition }}/{{ user.name }}/dev/log
+      {% endfor %}
+
+      :programname, isequal, "internal-sftp" -/var/log/sftp.log
+      :programname, isequal, "internal-sftp" ~
+  when: sftp_enable_logging
+  notify: SFTP-Server | Restart rsyslog
+
+- name: SFTP-Server | Enable Log rotation
+  copy:
+    dest: "/etc/logrotate.d/sftp"
+    content: |
+      /var/log/sftp.log
+      {
+        rotate 4
+        weekly
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+        postrotate
+                /usr/lib/rsyslog/rsyslog-rotate
+        endscript
+      }
+  when: sftp_enable_logging

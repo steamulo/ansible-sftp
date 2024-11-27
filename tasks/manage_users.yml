@@ -1,0 +1,44 @@
+---
+
+- name: "Compute SFTP users."
+  set_fact:
+    _sftp_users: >-
+      [{% for sftp_user in sftp_users -%}
+        {{ sftp_user | combine({'home': sftp_user.home | default(sftp_home_partition + '/' + sftp_user.name) }) }}
+        {{ '' if loop.last else ',' }}
+      {%- endfor %}]
+
+- name: SFTP-Server | Create sftp user group
+  group:
+    name: "{{ sftp_group_name }}"
+    state: present
+
+- name: SFTP-Server | Create sftp users
+  user:
+    name: "{{ item.name }}"
+    group: "{{ item.group | default(omit) }}"
+    groups: "{{ sftp_group_name }}"
+    append: "{{ item.append | default(False) }}"
+    home: "{{ item.home }}"
+    shell: "{{ None if (item.shell | default(True)) else sftp_nologin_shell }}"
+    skeleton: "{{ item.skeleton | default(omit) }}"
+    state: present
+  with_items: "{{ _sftp_users }}"
+
+- name: SFTP-Server | Correct ownership and permission of home directories
+  file:
+    path: "{{ item.home }}"
+    owner: root
+    group: "{{ item.group | default(sftp_group_name) }}"
+    mode: "{{ item.mode | default('0750') }}"
+  with_items: "{{ _sftp_users }}"
+
+- name: SFTP-Server | Install public keys
+  authorized_key:
+    user: "{{ item.0.name }}"
+    key: "{{ item.1 }}"
+  with_subelements:
+    - "{{ _sftp_users }}"
+    - authorized
+    - flags:
+      skip_missing: True

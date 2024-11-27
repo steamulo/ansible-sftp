@@ -1,0 +1,9 @@
+---
+
+exclude_paths:
+  - .ansible
+  - .virtualenv
+  - .git
+skip_list:
+  - experimental
+
