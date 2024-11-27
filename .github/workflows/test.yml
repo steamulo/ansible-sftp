@@ -2,7 +2,11 @@ name: Ansible Role Test
 
 on:
   push:
+    branches:
+      - '*'
   pull_request:
+    branches:
+      - '*'
 
 jobs:
   test:
@@ -31,6 +35,7 @@ jobs:
 
       - name: Run Docker container
         run: |
+          echo "Running Docker container for ${{ matrix.os }} with Ansible ${{ matrix.ansible-version }}"
           docker pull ${{ matrix.os }}:latest
           docker build --rm=true --file=tests/Dockerfile.${{ matrix.os }}.ansible-${{ matrix.ansible-version }} --tag=${{ matrix.os }}-ansible-${{ matrix.ansible-version }} tests
           container_id=$(mktemp)
