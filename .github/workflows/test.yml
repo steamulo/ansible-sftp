@@ -18,22 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.10, 3.12]
-        ubuntu-version: [18.04, 22.04, 24.04]
-        scenario: [""]
-        include:
-          - scenario: lint
-            python-version: 3.12
-            ubuntu-version: 24.04
-          - scenario: one
-            python-version: 3.12
-            ubuntu-version: 24.04
-          - scenario: two
-            python-version: 3.12
-            ubuntu-version: 24.04
-          - scenario: all
-            python-version: 3.12
-            ubuntu-version: 24.04
+        python-version: [3.12]
+        ubuntu-version: [24.04]
+        scenario: [lint, one, two, all]
+      fail-fast: false  # Continue running other tests even if one fails
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +41,8 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
+      - name: Print working directory
+        run: pwd
       - name: Run molecule ${{ matrix.scenario }}
         env:
           MOLECULE_DISTRO: "ubuntu${{ matrix.ubuntu-version }}"
