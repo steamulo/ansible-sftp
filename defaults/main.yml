@@ -1,4 +1,5 @@
 ---
+
 sftp_home_partition: /home
 sftp_group_name: sftpusers
 sftp_directories: []
