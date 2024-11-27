@@ -1,37 +1,43 @@
----
-name: Molecule Test
+name: Ansible Role Test
+
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
-defaults:
-  run:
-    shell: bash
-    working-directory: steamulo.sftp
+      - main
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
-        distribution: [centos7, centos8, ubuntu1804, ubuntu2004]
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, centos-7, centos-8]
+        ansible-version: [2.9, 2.10] # Updated versions
+        exclude: # Exclude centos-8 with Ansible 2.5 and 2.9
+          - os: centos-8
+            ansible-version: 2.9
+          - os: centos-8
+            ansible-version: 2.5
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          path: steamulo.sftp
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          python-version: '3.8'
+
+      - name: Install Ansible
+        run: pip3 install "ansible==${{ matrix.ansible-version }}"
+
+      - name: Run Docker container
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r requirements.txt
-      - name: Run all molecule scenarios
-        env:
-          MOLECULE_DISTRO: ${{ matrix.distribution }}
-        run: |
-          molecule test --all
+          docker pull ${{ matrix.os }}:latest
+          docker build --rm=true --file=tests/Dockerfile.${{ matrix.os }}.ansible-${{ matrix.ansible-version }} --tag=${{ matrix.os }}-ansible-${{ matrix.ansible-version }} tests
+          container_id=$(mktemp)
+          docker run --rm=true --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${{ matrix.os }}-ansible-${{ matrix.ansible-version }} /sbin/init > "${container_id}"
+          docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml
+          docker stop "$(cat ${container_id})"
