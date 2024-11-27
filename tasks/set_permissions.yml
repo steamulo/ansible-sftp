@@ -1,0 +1,9 @@
+---
+
+- name: SFTP-Server | Correct ownership and permission of home directories
+  file:
+    path: "{{ item.home }}"
+    owner: root
+    group: "{{ item.group | default(sftp_group_name) }}"
+    mode: "{{ item.mode | default('0750') }}"
+  with_items: "{{ _sftp_users }}"

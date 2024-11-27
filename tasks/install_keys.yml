@@ -1,0 +1,11 @@
+---
+
+- name: SFTP-Server | Install public keys
+  authorized_key:
+    user: "{{ item.0.name }}"
+    key: "{{ item.1 }}"
+  with_subelements:
+    - "{{ _sftp_users }}"
+    - authorized
+    - flags:
+      skip_missing: True
