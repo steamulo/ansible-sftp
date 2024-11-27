@@ -15,3 +15,13 @@
   with_nested:
     - "{{ _sftp_users }}"
     - "{{ sftp_directories }}"
+
+- name: SFTP-Server | Create symbolic link and set permissions
+  command: ln -s "{{ sftp_home_partition }}/{{ item.user_link }}/{{ item.folder }}" "{{ sftp_home_partition }}/{{ item.user_base }}/{{ item.folder }}"
+  with_items: "{{ sftp_links }}"
+  when: sftp_links is defined and sftp_links | length > 0 and item.user_link is defined and item.user_base is defined and item.folder is defined
+
+- name: SFTP-Server | Set permissions for linked folder
+  command: chmod 770 "{{ sftp_home_partition }}/{{ item.user_base }}/{{ item.folder }}"
+  with_items: "{{ sftp_links }}"
+  when: sftp_links is defined and sftp_links | length > 0 and item.user_link is defined and item.user_base is defined and item.folder is defined
