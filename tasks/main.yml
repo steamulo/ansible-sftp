@@ -1,4 +1,5 @@
 ---
+
 - name: SFTP-Server | Create sftp home partition
   file:
     path: "{{ sftp_home_partition }}"
